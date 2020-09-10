@@ -77,7 +77,7 @@ namespace KashkeshetServer
                     lock (_lock) Requests.Add(client2, request);
                     if (request.Type == "message")
                     {
-                        Requests[client2].Text = ("join the Chat\n");
+                        Requests[client2].Text = (request.Name + " join the Chat\n");
                     }
 
 
@@ -117,7 +117,7 @@ namespace KashkeshetServer
                         if (client3 != c)
                         {
                             SenderStrm = c.GetStream();
-                            byte[] buffer = Encoding.ASCII.GetBytes(request.Name + ": " + request.Text);
+                            byte[] buffer = Encoding.ASCII.GetBytes(request.Text);
                             SenderStrm.Write(buffer, 0, buffer.Length);
 
                         }
