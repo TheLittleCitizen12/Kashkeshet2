@@ -36,7 +36,7 @@ namespace KashkeshetClient
 
             Console.WriteLine("Connected To Server, For Exit Enter \"exit\" ");
 
-            if(request.Type == "message")
+            if (request.Type == "message")
             {
                 SendObject(request, client);
             }
@@ -65,19 +65,19 @@ namespace KashkeshetClient
 
             while (true)
             {
-                
-                if(request.Type == "message")
+
+                if (request.Type == "message")
                 {
-                    
+
                     UserInput();
- 
+
                     SendObject(request, client);
                     if (request.Text == "exit")
                         break;
                 }
                 else if (request.Type == "showClients")
                 {
-                    
+
                     SendObject(request, client);
                     request.Dst = UserInput();
                     request.Type = "privateChat";
@@ -119,7 +119,7 @@ namespace KashkeshetClient
             {
                 string RecivedText = Encoding.ASCII.GetString(receivedBytes, 0, byte_count);
 
-                Console.Write("\n"+RecivedText + "\n");
+                Console.Write("\n" + RecivedText + "\n");
             }
 
 

@@ -15,11 +15,11 @@ namespace KashkeshetClient
 
 
         }
-        
+
 
         public void MainMenu()
         {
-            
+
             while (true)
             {
                 Console.WriteLine("1. Broadcast Chat.");
@@ -49,7 +49,7 @@ namespace KashkeshetClient
 
         }
 
-        
+
         public int UserInput()
         {
             int result;

@@ -71,17 +71,18 @@ namespace KashkeshetServer
                 RevicerStrm = client2.GetStream();
                 IFormatter formatter = new BinaryFormatter();
                 request = (Request)formatter.Deserialize(RevicerStrm);
-                lock (_lock) Requests[client2] = request;
+                
                 if (!Requests.ContainsKey(client2))
                 {
                     lock (_lock) Requests.Add(client2, request);
-                    if(request.Type== "message")
+                    if (request.Type == "message")
                     {
                         Requests[client2].Text = ("join the Chat\n");
                     }
-                    
+
 
                 }
+                lock (_lock) Requests[client2] = request;
 
                 if (Requests[client2].Text == "exit")
                 {
@@ -89,7 +90,7 @@ namespace KashkeshetServer
                 }
                 SendMessage(client2);
             }
-            
+
             SendMessage(client2);
             lock (_lock) TcpClients.Remove(id);
             client2.Client.Shutdown(SocketShutdown.Both);
@@ -111,18 +112,18 @@ namespace KashkeshetServer
                 {
                     foreach (TcpClient c in TcpClients.Values)
                     {
-                        
+
 
                         if (client3 != c)
                         {
                             SenderStrm = c.GetStream();
-                            byte[] buffer = Encoding.ASCII.GetBytes(request.Name +": "+ request.Text);
+                            byte[] buffer = Encoding.ASCII.GetBytes(request.Name + ": " + request.Text);
                             SenderStrm.Write(buffer, 0, buffer.Length);
 
                         }
 
                     }
-                    
+
 
                 }
 
@@ -140,14 +141,14 @@ namespace KashkeshetServer
                     SenderStrm.Write(buffer, 0, buffer.Length);
 
                 }
-                else if(request.Type == "privateChat")
+                else if (request.Type == "privateChat")
                 {
                     foreach (KeyValuePair<TcpClient, Request> item in Requests)
                     {
 
-                        if(item.Value.Name == Requests[client3].Dst)
+                        if (item.Value.Name == Requests[client3].Dst)
                         {
-                            lock(_lock)client4 = item.Key;
+                            lock (_lock) client4 = item.Key;
                         }
                         //להוסיף מה קורה אם אין לקוח כזה
                     }
