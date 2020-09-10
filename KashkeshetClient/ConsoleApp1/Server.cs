@@ -86,6 +86,7 @@ namespace KashkeshetServer
 
                 if (Requests[client2].Text == "exit")
                 {
+                    Requests[client2].Text = (request.Name + " Leave the Chat\n");
                     break;
                 }
                 SendMessage(client2);
