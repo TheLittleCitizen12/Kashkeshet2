@@ -43,16 +43,12 @@ namespace KashkeshetServer
             {
 
                 TcpClient client = ServerSocket.AcceptTcpClient();
-                Console.WriteLine("clinet connected");
 
                 //recive the request
 
                 if (!TcpClients.ContainsKey(count))
                 {
                     TcpClients.Add(count, client);
-                    //Thread threadobject = new Thread(o => reciveObject((TcpClient)o));
-                    //threadobject.Start(client);
-                    ////threadobject.Join();
                 }
 
                 Thread t = new Thread(handle_clients);
@@ -62,12 +58,7 @@ namespace KashkeshetServer
             }
 
         }
-        //public void reciveObject(TcpClient client)
-        //{
 
-            
-
-        //}
         public void handle_clients(object o)
         {
             int id = (int)o;
@@ -80,24 +71,25 @@ namespace KashkeshetServer
                 RevicerStrm = client2.GetStream();
                 IFormatter formatter = new BinaryFormatter();
                 request = (Request)formatter.Deserialize(RevicerStrm);
+                lock (_lock) Requests[client2] = request;
                 if (!Requests.ContainsKey(client2))
                 {
                     lock (_lock) Requests.Add(client2, request);
-                    Requests[client2].Text = ("join the Chat\n");
-                    //Console.WriteLine("sending joining message massege");
-                    //SendMessage(client2);
+                    if(request.Type== "message")
+                    {
+                        Requests[client2].Text = ("join the Chat\n");
+                    }
+                    
 
                 }
-                Console.WriteLine("recived obj " + Requests[client2].Name);
 
                 if (Requests[client2].Text == "exit")
                 {
                     break;
                 }
-                Console.WriteLine("sending message");
                 SendMessage(client2);
             }
-            Requests[client2].Text = ("Leave the Chat\n");
+            
             SendMessage(client2);
             lock (_lock) TcpClients.Remove(id);
             client2.Client.Shutdown(SocketShutdown.Both);
@@ -108,7 +100,9 @@ namespace KashkeshetServer
         public void SendMessage(TcpClient client1)
         {
             TcpClient client3;
+            TcpClient client4;
             lock (_lock) client3 = client1;
+            lock (_lock) client4 = client1;
 
             lock (_lock)
             {
@@ -117,21 +111,49 @@ namespace KashkeshetServer
                 {
                     foreach (TcpClient c in TcpClients.Values)
                     {
-                        Console.WriteLine("Enter the loop");
+                        
+
                         if (client3 != c)
                         {
-                            //IFormatter formatter = new BinaryFormatter();
                             SenderStrm = c.GetStream();
-                            //formatter.Serialize(SenderStrm, request);
-                            //Console.WriteLine("send");
                             byte[] buffer = Encoding.ASCII.GetBytes(request.Name +": "+ request.Text);
                             SenderStrm.Write(buffer, 0, buffer.Length);
 
                         }
 
                     }
-                    Console.WriteLine("out of the loop");
+                    
 
+                }
+
+                else if (request.Type == "showClients")
+                {
+                    string ConnectedClients = "Connected Clients:\n";
+                    foreach (Request item in Requests.Values)
+                    {
+
+                        ConnectedClients += (item.Name + "\n");
+
+                    }
+                    SenderStrm = client3.GetStream();
+                    byte[] buffer = Encoding.ASCII.GetBytes(ConnectedClients);
+                    SenderStrm.Write(buffer, 0, buffer.Length);
+
+                }
+                else if(request.Type == "privateChat")
+                {
+                    foreach (KeyValuePair<TcpClient, Request> item in Requests)
+                    {
+
+                        if(item.Value.Name == Requests[client3].Dst)
+                        {
+                            lock(_lock)client4 = item.Key;
+                        }
+                        //להוסיף מה קורה אם אין לקוח כזה
+                    }
+                    SenderStrm = client4.GetStream();
+                    byte[] buffer = Encoding.ASCII.GetBytes(request.Name + ": " + request.Text);
+                    SenderStrm.Write(buffer, 0, buffer.Length);
                 }
 
             }

@@ -35,7 +35,11 @@ namespace KashkeshetClient
             client = new TcpClient("10.1.0.20", port);
 
             Console.WriteLine("Connected To Server, For Exit Enter \"exit\" ");
-            SendObject(request, client);
+
+            if(request.Type == "message")
+            {
+                SendObject(request, client);
+            }
             SendData(client);
 
 
@@ -45,12 +49,11 @@ namespace KashkeshetClient
             IFormatter formatter = new BinaryFormatter();
             NetworkStream strm = client.GetStream();
             formatter.Serialize(strm, request1);
-            Console.WriteLine("send Messege");
+
         }
 
         public void SendData(TcpClient client)
         {
-            Console.WriteLine("get to SEND DATA");
             Stream strm = client.GetStream();
 
 
@@ -58,26 +61,39 @@ namespace KashkeshetClient
             //start reciving data
             Thread thread = new Thread(o => ReceiveData((TcpClient)o));
             thread.Start(client);
-            //thread.Join();
 
-            while (UserInput()!= "exit")
+
+            while (true)
             {
+                if(request.Type == "message")
+                {
+                    Console.Write("Enter Message: ");
+                    UserInput();
+                    SendObject(request, client);
+                }
+                else if (request.Type == "showClients")
+                {
+                    Console.Write("Me: ");
+                    SendObject(request, client);
+                    request.Dst = UserInput();
+                    request.Type = "privateChat";
+                }
+                else if (request.Type == "privateChat")
+                {
+                    UserInput();
+                    SendObject(request, client);
+                }
 
-                SendObject(request, client);
 
 
             }
 
-            client.Client.Shutdown(SocketShutdown.Send);
-            thread.Join();
-            strm.Close();
-            client.Close();
+            
         }
 
         public string UserInput()
         {
             string userInput;
-            Console.Write("Enter Message: ");
             userInput = Console.ReadLine();
             request.Text = userInput;
             return userInput;
@@ -93,7 +109,13 @@ namespace KashkeshetClient
             int byte_count;
             while ((byte_count = recivestrm.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
             {
-                Console.Write("\n"+Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
+                string RecivedText = Encoding.ASCII.GetString(receivedBytes, 0, byte_count);
+                if(RecivedText == "exit")
+                {
+                    client.Client.Shutdown(SocketShutdown.Send);
+                    client.Close();
+                }
+                Console.Write("\n"+RecivedText + "\n");
             }
 
 

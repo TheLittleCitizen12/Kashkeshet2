@@ -35,6 +35,7 @@ namespace KashkeshetClient
                         //client.SendData();
                         break;
                     case 2:
+                        request.Type = "showClients";
                         client.StartSession();
                         //ChoosePrivateDstMenu();
                         //client.SendData();
