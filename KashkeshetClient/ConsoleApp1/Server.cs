@@ -75,10 +75,10 @@ namespace KashkeshetServer
                 if (!Requests.ContainsKey(client2))
                 {
                     lock (_lock) Requests.Add(client2, request);
-                    if (request.Type == "message")
-                    {
-                        Requests[client2].Text = (request.Name + " join the Chat\n");
-                    }
+                    //if (request.Type == "message")
+                    //{
+                        Requests[client2].Text = (request.Name + " join the Chat");
+                    //}
 
 
                 }
@@ -86,7 +86,7 @@ namespace KashkeshetServer
 
                 if (Requests[client2].Text == "exit")
                 {
-                    Requests[client2].Text = (request.Name + " Leave the Chat\n");
+                    Requests[client2].Text = (request.Name + " Leave the Chat");
                     break;
                 }
                 SendMessage(client2);
@@ -158,7 +158,7 @@ namespace KashkeshetServer
                         request.Text = "This client is not connected";
                     }
                     SenderStrm = client4.GetStream();
-                    byte[] buffer = Encoding.ASCII.GetBytes(request.Name + ": " + request.Text);
+                    byte[] buffer = Encoding.ASCII.GetBytes(request.Text);
                     SenderStrm.Write(buffer, 0, buffer.Length);
                 }
 

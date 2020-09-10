@@ -64,9 +64,8 @@ namespace KashkeshetClient
 
                 if (request.Type == "message")
                 {
-
-                    UserInput();
-
+                    Console.Write("you: ");
+                    request.Text = (request.Name+": "+ Console.ReadLine());
                     SendObject(client);
                     if (request.Text == "exit")
                         break;
@@ -75,12 +74,15 @@ namespace KashkeshetClient
                 {
 
                     SendObject(client);
-                    request.Dst = UserInput();
+                    Console.Write("Choose client name to chat with: ");
+                    request.Dst = Console.ReadLine();
+                    request.Text = (request.Name + " want to private chat with you");
                     request.Type = "privateChat";
                 }
                 else if (request.Type == "privateChat")
                 {
-                    UserInput();
+                    Console.Write("you: ");
+                    request.Text = (request.Name + ": " + Console.ReadLine());
                     SendObject(client);
                 }
 
@@ -115,7 +117,7 @@ namespace KashkeshetClient
             {
                 string RecivedText = Encoding.ASCII.GetString(receivedBytes, 0, byte_count);
 
-                Console.Write("\n" + RecivedText + "\n");
+                Console.Write("\n" + RecivedText  +"\nyou:");
             }
 
 
