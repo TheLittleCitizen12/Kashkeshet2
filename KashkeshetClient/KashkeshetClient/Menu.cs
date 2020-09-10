@@ -19,7 +19,7 @@ namespace KashkeshetClient
 
         public void MainMenu()
         {
-
+            TcpClient tcpClient = client.StartSession();
             while (true)
             {
                 Console.WriteLine("1. Broadcast Chat.");
@@ -31,11 +31,13 @@ namespace KashkeshetClient
                 {
                     case 1:
                         request.Type = "message";
-                        client.StartSession();
+                        client.SendObject(tcpClient);
+                        client.SendData(tcpClient);
+
                         break;
                     case 2:
                         request.Type = "showClients";
-                        client.StartSession();
+                        client.SendData(tcpClient);
                         break;
 
                     case 3:

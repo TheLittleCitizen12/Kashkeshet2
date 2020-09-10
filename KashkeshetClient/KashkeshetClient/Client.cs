@@ -25,7 +25,7 @@ namespace KashkeshetClient
             isFirstTime = true;
         }
 
-        public void StartSession()
+        public TcpClient StartSession()
         {
 
             Console.Write("Please enter user name: ");
@@ -36,19 +36,15 @@ namespace KashkeshetClient
 
             Console.WriteLine("Connected To Server, For Exit Enter \"exit\" ");
 
-            if (request.Type == "message")
-            {
-                SendObject(request, client);
-            }
-            SendData(client);
+            return client;
 
 
         }
-        public void SendObject(Request request1, TcpClient client)
+        public void SendObject(TcpClient client)
         {
             IFormatter formatter = new BinaryFormatter();
             NetworkStream strm = client.GetStream();
-            formatter.Serialize(strm, request1);
+            formatter.Serialize(strm, request);
 
         }
 
@@ -71,21 +67,21 @@ namespace KashkeshetClient
 
                     UserInput();
 
-                    SendObject(request, client);
+                    SendObject(client);
                     if (request.Text == "exit")
                         break;
                 }
                 else if (request.Type == "showClients")
                 {
 
-                    SendObject(request, client);
+                    SendObject(client);
                     request.Dst = UserInput();
                     request.Type = "privateChat";
                 }
                 else if (request.Type == "privateChat")
                 {
                     UserInput();
-                    SendObject(request, client);
+                    SendObject(client);
                 }
 
 
