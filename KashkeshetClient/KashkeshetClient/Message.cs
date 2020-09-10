@@ -6,10 +6,14 @@ using System.Text;
 namespace KashkeshetClient
 {
     [Serializable]
-    public class UserData
+    public class Message: Request
     {
-        public string Name { get; set; }
-        public int Input { get; set; }
-        
+
+        public Message()
+        {
+            Type = "message";
+
+        }
+
     }
 }

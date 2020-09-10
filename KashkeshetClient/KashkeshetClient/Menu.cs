@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Text;
 
 namespace KashkeshetClient
@@ -7,16 +8,18 @@ namespace KashkeshetClient
     class Menu
     {
         public Client client { get; set; }
-        public UserData userData { get; set; }
-
-        public Menu(Client client1, UserData userData1)
+        public Request request = new Request();
+        public Menu()
         {
-            client = client1;
-            userData = userData1;
+            client = new Client(request);
+
+
         }
+        
 
         public void MainMenu()
         {
+            
             while (true)
             {
                 Console.WriteLine("1. Broadcast Chat.");
@@ -27,13 +30,16 @@ namespace KashkeshetClient
                 switch (choice)
                 {
                     case 1:
-                        userData.Input = 1;
-                        client.SendData(client.StartSession());
+                        request.Type = "message";
+                        client.StartSession();
+                        //client.SendData();
                         break;
                     case 2:
-                        userData.Input = 2;
                         client.StartSession();
+                        //ChoosePrivateDstMenu();
+                        //client.SendData();
                         break;
+
                     case 3:
                         return;
                     default:
@@ -47,7 +53,23 @@ namespace KashkeshetClient
 
         }
 
-        static int UserInput()
+        //public void ChoosePrivateDstMenu()
+        //{
+        //    foreach (var item in request.ConnectedClinsts)
+        //    {
+        //        Console.WriteLine("{0}. {1}", item.Key, item.Value);
+        //    }
+        //    int id = UserInput();
+        //    while (!request.ConnectedClinsts.ContainsKey(id))
+        //    {
+        //        id = UserInput();
+        //    }
+        //    request.DstId = id;
+
+
+
+        //}
+        public int UserInput()
         {
             int result;
             bool parsedSuccessfully = int.TryParse(Console.ReadLine(), out result);
@@ -58,5 +80,7 @@ namespace KashkeshetClient
             }
             return result;
         }
+
+
     }
 }

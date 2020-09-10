@@ -13,72 +13,90 @@ namespace KashkeshetClient
 {
     public class Client
     {
-        public UserData userData { get; set; }
-        public Client(UserData userData1)
+        public Request request { get; set; }
+        public Request resiveRequest { get; set; }
+
+        public TcpClient client { get; set; }
+        public bool isFirstTime { get; set; }
+
+        public Client(Request request)
         {
-            userData = userData1 ;
+            this.request = request;
+            isFirstTime = true;
         }
 
-        public TcpClient StartSession()
+        public void StartSession()
         {
+
             Console.Write("Please enter user name: ");
-            userData.Name = Console.ReadLine();
+            request.Name = Console.ReadLine();
+
             int port = 11000;
-            TcpClient client = new TcpClient("10.1.0.20",port);
-            SendObject(userData, client);
-            Console.WriteLine("Connected To Server, For Exit Please Press Enter");
-            return client;
-            
-           
+            client = new TcpClient("10.1.0.20", port);
+
+            Console.WriteLine("Connected To Server, For Exit Enter \"exit\" ");
+            SendObject(request, client);
+            SendData(client);
+
 
         }
-        public void SendObject(UserData userData, TcpClient client)
+        public void SendObject(Request request1, TcpClient client)
         {
             IFormatter formatter = new BinaryFormatter();
             NetworkStream strm = client.GetStream();
-            formatter.Serialize(strm, userData);
+            formatter.Serialize(strm, request1);
+            Console.WriteLine("send Messege");
         }
 
         public void SendData(TcpClient client)
         {
-            NetworkStream ns = client.GetStream();
+            Console.WriteLine("get to SEND DATA");
+            Stream strm = client.GetStream();
+
+
+
+            //start reciving data
             Thread thread = new Thread(o => ReceiveData((TcpClient)o));
-
             thread.Start(client);
+            //thread.Join();
 
-            string Input;
-            while (!string.IsNullOrEmpty(Input = UserInput()))
+            while (UserInput()!= "exit")
             {
-                byte[] buffer = Encoding.ASCII.GetBytes(userData.Name + ": " + Input);
-                ns.Write(buffer, 0, buffer.Length);
+
+                SendObject(request, client);
+
+
             }
 
             client.Client.Shutdown(SocketShutdown.Send);
             thread.Join();
-            ns.Close();
+            strm.Close();
             client.Close();
-            Console.WriteLine(userData.Name + " disconnect from chat");
-            Console.ReadKey();
         }
 
-        static string UserInput()
+        public string UserInput()
         {
             string userInput;
             Console.Write("Enter Message: ");
             userInput = Console.ReadLine();
+            request.Text = userInput;
             return userInput;
 
         }
-        static void ReceiveData(TcpClient client)
+
+        public void ReceiveData(TcpClient client2)
         {
-            NetworkStream ns = client.GetStream();
+
+
+            Stream recivestrm = client2.GetStream();
             byte[] receivedBytes = new byte[1024];
             int byte_count;
-
-            while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
+            while ((byte_count = recivestrm.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
             {
                 Console.Write("\n"+Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
             }
+
+
         }
 
 

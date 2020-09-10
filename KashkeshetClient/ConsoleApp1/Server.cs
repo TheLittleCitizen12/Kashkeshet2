@@ -1,7 +1,7 @@
 ﻿using KashkeshetClient;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
@@ -10,26 +10,31 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace KashkeshetServer
 {
     class Server
     {
         static readonly object _lock = new object();
-        static readonly Dictionary<int, TcpClient> TcpClients = new Dictionary<int, TcpClient>();
-        static readonly Dictionary<int, UserData> ClientsDetail = new Dictionary<int, UserData>();
-        public TcpClient client { get; set; }
-        public int count { get; set; }
-        public UserData userDataRecived { get; set; }
 
+        static readonly Dictionary<int, TcpClient> TcpClients = new Dictionary<int, TcpClient>();
+        static readonly Dictionary<TcpClient, Request> Requests = new Dictionary<TcpClient, Request>();
+
+        //public TcpClient client { get; set; }
+        public Request request { get; set; }
+
+        public Stream SenderStrm { get; set; }
+
+        public Stream RevicerStrm { get; set; }
+        public int count { get; set; }
+        //public int id { get; set; }
         public Server()
         {
             count = 1;
+            //id = 1;
         }
-
-        public void StrartServer()
+        public void StartServer()
         {
-
-
             TcpListener ServerSocket = new TcpListener(IPAddress.Any, 11000);
             ServerSocket.Start();
 
@@ -37,102 +42,101 @@ namespace KashkeshetServer
             while (true)
             {
 
-                client = ServerSocket.AcceptTcpClient();
+                TcpClient client = ServerSocket.AcceptTcpClient();
+                Console.WriteLine("clinet connected");
+
+                //recive the request
+
                 if (!TcpClients.ContainsKey(count))
                 {
-                    Thread threadobject = new Thread(o => reciveObject((TcpClient)o));
-                    threadobject.Start(client);
-                    threadobject.Join();
-
+                    TcpClients.Add(count, client);
+                    //Thread threadobject = new Thread(o => reciveObject((TcpClient)o));
+                    //threadobject.Start(client);
+                    ////threadobject.Join();
                 }
-
-                lock (_lock) TcpClients.Add(count, client);
-                Console.WriteLine("Someone connected!!");
-
 
                 Thread t = new Thread(handle_clients);
                 t.Start(count);
                 count++;
+
             }
 
         }
+        //public void reciveObject(TcpClient client)
+        //{
 
-        public void reciveObject(TcpClient client)
-        {
+            
 
-            NetworkStream strm = client.GetStream();
-            IFormatter formatter = new BinaryFormatter();
-            userDataRecived = (UserData)formatter.Deserialize(strm);
-            lock (_lock) ClientsDetail.Add(count, userDataRecived);
-
-        }
-
+        //}
         public void handle_clients(object o)
         {
             int id = (int)o;
-            TcpClient client;
+            TcpClient client2;
 
-            lock (_lock) client = TcpClients[id];
+            lock (_lock) client2 = TcpClients[id];
 
             while (true)
             {
-                NetworkStream stream = client.GetStream();
-                byte[] buffer = new byte[1024];
-                int byte_count = stream.Read(buffer, 0, buffer.Length);
+                RevicerStrm = client2.GetStream();
+                IFormatter formatter = new BinaryFormatter();
+                request = (Request)formatter.Deserialize(RevicerStrm);
+                if (!Requests.ContainsKey(client2))
+                {
+                    lock (_lock) Requests.Add(client2, request);
+                    Requests[client2].Text = ("join the Chat\n");
+                    //Console.WriteLine("sending joining message massege");
+                    //SendMessage(client2);
 
-                if (byte_count == 0)
+                }
+                Console.WriteLine("recived obj " + Requests[client2].Name);
+
+                if (Requests[client2].Text == "exit")
                 {
                     break;
                 }
-
-                string data = Encoding.ASCII.GetString(buffer, 0, byte_count);
-                ChooseMetod(data,client);
-                
-                //Console.WriteLine(data);
+                Console.WriteLine("sending message");
+                SendMessage(client2);
             }
-            ChooseMetod(ClientsDetail[id].Name + " Leave the chat", client);
+            Requests[client2].Text = ("Leave the Chat\n");
+            SendMessage(client2);
             lock (_lock) TcpClients.Remove(id);
-            client.Client.Shutdown(SocketShutdown.Both);
-            client.Close();
+            client2.Client.Shutdown(SocketShutdown.Both);
+            client2.Close();
 
         }
-        public void ChooseMetod(string data, TcpClient client)
-        {
-            if(userDataRecived.Input == 1)
-            {
-                broadcast(data, client);
-            }
-            else
-            {
-                ChooseClientForPrivateChat();
-            }
-        }
-        public void ChooseClientForPrivateChat()
-        {
 
-            foreach (var client in ClientsDetail)
-            {
-                Console.WriteLine("{key}.{value}",client.Key,client.Value.Name);
-            }
-        }
-
-        public void broadcast(string data, TcpClient client)
+        public void SendMessage(TcpClient client1)
         {
-            byte[] buffer = Encoding.ASCII.GetBytes(data + Environment.NewLine);
+            TcpClient client3;
+            lock (_lock) client3 = client1;
 
             lock (_lock)
             {
-                foreach (TcpClient c in TcpClients.Values)
-                {
-                    if (client != c)
-                    {
-                        NetworkStream stream = c.GetStream();
 
-                        stream.Write(buffer, 0, buffer.Length);
+                if (request.Type == "message")
+                {
+                    foreach (TcpClient c in TcpClients.Values)
+                    {
+                        Console.WriteLine("Enter the loop");
+                        if (client3 != c)
+                        {
+                            //IFormatter formatter = new BinaryFormatter();
+                            SenderStrm = c.GetStream();
+                            //formatter.Serialize(SenderStrm, request);
+                            //Console.WriteLine("send");
+                            byte[] buffer = Encoding.ASCII.GetBytes(request.Name +": "+ request.Text);
+                            SenderStrm.Write(buffer, 0, buffer.Length);
+
+                        }
+
                     }
+                    Console.WriteLine("out of the loop");
 
                 }
+
             }
+
+
         }
 
     }
