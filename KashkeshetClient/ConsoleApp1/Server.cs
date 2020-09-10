@@ -151,6 +151,10 @@ namespace KashkeshetServer
                         }
                         //להוסיף מה קורה אם אין לקוח כזה
                     }
+                    if (client4 == client3)
+                    {
+                        request.Text = "This client is not connected";
+                    }
                     SenderStrm = client4.GetStream();
                     byte[] buffer = Encoding.ASCII.GetBytes(request.Name + ": " + request.Text);
                     SenderStrm.Write(buffer, 0, buffer.Length);

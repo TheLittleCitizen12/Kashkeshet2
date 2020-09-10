@@ -32,13 +32,10 @@ namespace KashkeshetClient
                     case 1:
                         request.Type = "message";
                         client.StartSession();
-                        //client.SendData();
                         break;
                     case 2:
                         request.Type = "showClients";
                         client.StartSession();
-                        //ChoosePrivateDstMenu();
-                        //client.SendData();
                         break;
 
                     case 3:
@@ -47,29 +44,12 @@ namespace KashkeshetClient
                         Console.WriteLine("You don't have this option");
                         MainMenu();
                         break;
-
-
                 }
             }
 
         }
 
-        //public void ChoosePrivateDstMenu()
-        //{
-        //    foreach (var item in request.ConnectedClinsts)
-        //    {
-        //        Console.WriteLine("{0}. {1}", item.Key, item.Value);
-        //    }
-        //    int id = UserInput();
-        //    while (!request.ConnectedClinsts.ContainsKey(id))
-        //    {
-        //        id = UserInput();
-        //    }
-        //    request.DstId = id;
-
-
-
-        //}
+        
         public int UserInput()
         {
             int result;

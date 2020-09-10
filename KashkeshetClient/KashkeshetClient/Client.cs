@@ -65,15 +65,19 @@ namespace KashkeshetClient
 
             while (true)
             {
+                
                 if(request.Type == "message")
                 {
-                    Console.Write("Enter Message: ");
+                    
                     UserInput();
+ 
                     SendObject(request, client);
+                    if (request.Text == "exit")
+                        break;
                 }
                 else if (request.Type == "showClients")
                 {
-                    Console.Write("Me: ");
+                    
                     SendObject(request, client);
                     request.Dst = UserInput();
                     request.Type = "privateChat";
@@ -87,13 +91,17 @@ namespace KashkeshetClient
 
 
             }
+            client.Client.Shutdown(SocketShutdown.Both);
+            client.Close();
 
-            
+
+
         }
 
         public string UserInput()
         {
             string userInput;
+            Console.Write("Enter Message: ");
             userInput = Console.ReadLine();
             request.Text = userInput;
             return userInput;
@@ -110,11 +118,7 @@ namespace KashkeshetClient
             while ((byte_count = recivestrm.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
             {
                 string RecivedText = Encoding.ASCII.GetString(receivedBytes, 0, byte_count);
-                if(RecivedText == "exit")
-                {
-                    client.Client.Shutdown(SocketShutdown.Send);
-                    client.Close();
-                }
+
                 Console.Write("\n"+RecivedText + "\n");
             }
 
